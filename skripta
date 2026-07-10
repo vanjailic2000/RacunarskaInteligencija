@@ -1,0 +1,385 @@
+"""
+PANDAS + PLOTLY — PODSETNIK ZA KOLOKVIJUM
+=========================================
+
+Kako se koristi:
+1. Stavi ovaj fajl i Filmovi.csv u isti folder.
+2. U VS Code terminalu pokreni:
+       python Pandas_Kolokvijum_Podsetnik.py
+3. Za vreme kolokvijuma pronađi deo koji liči na zadatak i promeni:
+   - naziv CSV fajla
+   - naziv kolone
+   - ime osobe / tekst koji se traži
+
+VAŽNO:
+- Sve što počinje znakom # je komentar — Python to ne izvršava.
+- df = cela tabela (DataFrame).
+- df["kolona"] = jedna kolona.
+- df[uslov] = samo redovi koji ispunjavaju uslov.
+- df[uslov]["title"] = samo naslovi iz pronađenih redova.
+"""
+
+# ============================================================
+# 0. UVOZ BIBLIOTEKA I UČITAVANJE PODATAKA
+# ============================================================
+
+import pandas as pd                    # Uvozi pandas i daje mu skraćeni naziv pd.
+import plotly.express as px            # Uvozi Plotly Express i daje mu skraćeni naziv px.
+
+NAZIV_FAJLA = "Filmovi.csv"            # Promeni samo ovo ako se CSV drugačije zove.
+df = pd.read_csv(NAZIV_FAJLA)          # Učitava CSV i čuva celu tabelu u promenljivoj df.
+
+print("\nCSV je uspešno učitan.")
+print("Broj redova i kolona:", df.shape)  # shape vraća: (broj redova, broj kolona)
+
+
+# ============================================================
+# ZADATAK 1
+# Učitati set podataka i ispisati nazive kolona.
+# ============================================================
+
+# Šta se radi:
+# Učitavanje je već urađeno pomoću read_csv, a columns prikazuje nazive svih kolona.
+
+print("\n--- ZADATAK 1: NAZIVI KOLONA ---")
+print(df.columns)                      # columns vraća nazive svih kolona.
+
+# Korisne varijacije:
+# print(list(df.columns))              # Pretvara nazive kolona u običnu Python listu.
+# print(df.head())                     # Prikazuje prvih 5 redova.
+# print(df.head(10))                   # Prikazuje prvih 10 redova.
+# print(df.tail(10))                   # Prikazuje poslednjih 10 redova.
+
+
+# ============================================================
+# ZADATAK 2
+# Proveriti da li ima praznih ćelija i koji su tipovi podataka.
+# ============================================================
+
+# Šta se radi:
+# isnull() proverava svaku ćeliju, a sum() prebrojava prazne ćelije po kolonama.
+# dtypes prikazuje tip podataka svake kolone.
+
+print("\n--- ZADATAK 2: PRAZNE ĆELIJE ---")
+print(df.isnull().sum())               # Broj praznih ćelija u svakoj koloni.
+
+print("\n--- ZADATAK 2: TIPOVI PODATAKA ---")
+print(df.dtypes)                       # str = tekst; int/float = broj.
+
+
+# ============================================================
+# ZADATAK 3 — VARIJANTA 1B
+# Ispisati nazive filmova u kojima se pojavljuje James McAvoy.
+# ============================================================
+
+# Šta se radi:
+# U koloni cast tražimo tekst "James McAvoy", zadržavamo pronađene redove
+# i na kraju prikazujemo samo kolonu title.
+
+print("\n--- ZADATAK 3: FILMOVI SA JAMES MCAVOY ---")
+
+# Jednostavna verzija — koristi je kada nema praznih ćelija u koloni cast.
+print(df[df["cast"].str.contains("James McAvoy")]["title"])
+
+# Sigurnija verzija — na=False sprečava grešku ako postoji prazna ćelija.
+# print(df[df["cast"].str.contains("James McAvoy", na=False)]["title"])
+
+# Ako želiš ceo red, a ne samo naziv:
+# print(df[df["cast"].str.contains("James McAvoy", na=False)])
+
+# ŠABLON — traženje bilo kog glumca:
+# print(df[df["cast"].str.contains("IME GLUMCA", na=False)]["title"])
+
+# ŠABLON — traženje režisera:
+# print(df[df["director"].str.contains("IME REŽISERA", na=False)]["title"])
+
+# ŠABLON — traženje producenta:
+# print(df[df["producers"].str.contains("IME PRODUCENTA", na=False)]["title"])
+
+# ŠABLON — traženje scenariste:
+# print(df[df["writers"].str.contains("IME SCENARISTE", na=False)]["title"])
+
+# VARIJANTA IZ DRUGOG KOLOKVIJUMA:
+# print(df[df["cast"].str.contains("Anne Hathaway", na=False)]["title"])
+
+
+# ============================================================
+# ZADATAK 4 — VARIJANTA 1B
+# Sortirati filmove po nazivu.
+# ============================================================
+
+# Šta se radi:
+# sort_values sortira tabelu po navedenoj koloni.
+# Podrazumevano je rastuće: A-Z ili od manjeg ka većem.
+
+print("\n--- ZADATAK 4: SORTIRANJE PO NAZIVU ---")
+sortirano_po_nazivu = df.sort_values("title")      # Sortira po koloni title.
+print(sortirano_po_nazivu.head(10))                # Prikazuje prvih 10 sortiranih redova.
+
+# Kraća verzija:
+# print(df.sort_values("title").head(10))
+
+# Obrnuto sortiranje Z-A:
+# print(df.sort_values("title", ascending=False).head(10))
+
+# Sortiranje po godini:
+# print(df.sort_values("year_norm").head(10))
+# print(df.sort_values("year_norm", ascending=False).head(10))
+
+
+# ============================================================
+# ZADATAK 4 — VARIJANTA 1A
+# Sortirati filmove po primarnom žanru.
+# ============================================================
+
+# Šta se radi:
+# split(",") deli više žanrova po zarezu, str[0] uzima prvi,
+# a strip() uklanja višak razmaka.
+
+filmovi_sa_primarnim_zanrom = df.copy()
+filmovi_sa_primarnim_zanrom["primary_genre"] = (
+    filmovi_sa_primarnim_zanrom["genres"]
+    .str.split(",")
+    .str[0]
+    .str.strip()
+)
+
+# print(filmovi_sa_primarnim_zanrom.sort_values("primary_genre")[["title", "primary_genre"]])
+
+
+# ============================================================
+# ZADATAK 5 — VARIJANTA 1B
+# Izračunati koliko svaki žanr ima filmova i prikazati bar chart
+# za prvih deset žanrova.
+# ============================================================
+
+# Šta se radi:
+# split deli žanrove, explode pravi poseban red za svaki žanr,
+# value_counts broji pojavljivanja, head(10) uzima prvih 10.
+
+zanrovi = df.copy()
+zanrovi["genres"] = zanrovi["genres"].str.split(",")
+zanrovi = zanrovi.explode("genres")
+zanrovi["genres"] = zanrovi["genres"].str.strip()
+
+broj_po_zanru = zanrovi["genres"].value_counts()
+top10_zanrova = broj_po_zanru.head(10)
+
+print("\n--- ZADATAK 5: BROJ FILMOVA PO ŽANRU ---")
+print(broj_po_zanru)
+
+fig_zanrovi = px.bar(
+    x=top10_zanrova.index,
+    y=top10_zanrova.values,
+    labels={"x": "Žanr", "y": "Broj filmova"},
+    title="Top 10 žanrova"
+)
+
+# fig_zanrovi.show()
+
+
+# ============================================================
+# ZADATAK 5 — VARIJANTA 1A
+# Izračunati koliko svaki režiser ima filmova i prikazati bar chart
+# za prvih deset režisera.
+# ============================================================
+
+broj_po_reziseru = df["director"].value_counts()
+top10_rezisera = broj_po_reziseru.head(10)
+
+fig_reziseri = px.bar(
+    x=top10_rezisera.index,
+    y=top10_rezisera.values,
+    labels={"x": "Režiser", "y": "Broj filmova"},
+    title="Top 10 režisera"
+)
+
+# fig_reziseri.show()
+
+
+# ============================================================
+# ZADATAK 6
+# Pronaći najstariji i najnoviji film.
+# ============================================================
+
+# min() pronalazi najmanju, max() najveću vrednost u year_norm.
+
+najstariji = df[df["year_norm"] == df["year_norm"].min()]
+najnoviji = df[df["year_norm"] == df["year_norm"].max()]
+
+print("\n--- ZADATAK 6: NAJSTARIJI FILM ---")
+print(najstariji[["title", "year_norm"]])
+
+print("\n--- ZADATAK 6: NAJNOVIJI FILM ---")
+print(najnoviji[["title", "year_norm"]])
+
+# Ako želiš ceo red:
+# print(najstariji)
+# print(najnoviji)
+
+
+# ============================================================
+# ZADATAK 7
+# Prikazati histogram filmova po godinama.
+# ============================================================
+
+# Histogram prikazuje raspodelu jedne numeričke kolone.
+
+fig_histogram = px.histogram(
+    df,
+    x="year_norm",
+    title="Histogram filmova po godinama",
+    labels={"year_norm": "Godina"}
+)
+
+# fig_histogram.show()
+
+# Varijacija sa brojem intervala:
+# fig = px.histogram(df, x="year_norm", nbins=20)
+# fig.show()
+
+
+# ============================================================
+# ZADATAK 8
+# Pronaći filmove u kojima režiseri nisu ujedno i scenaristi.
+# ============================================================
+
+# Jednostavna verzija: poredi ceo tekst director i writers.
+reziser_nije_scenarista_jednostavno = df[df["director"] != df["writers"]]
+
+print("\n--- ZADATAK 8: REŽISER NIJE SCENARISTA ---")
+print(reziser_nije_scenarista_jednostavno["title"])
+
+# Bez ["title"] dobijaš ceo red:
+# print(reziser_nije_scenarista_jednostavno)
+
+# Preciznija verzija: proverava da li se ime režisera nalazi u tekstu scenarista.
+reziser_nije_scenarista_precizno = df[
+    ~df.apply(
+        lambda red: str(red["director"]).strip() in str(red["writers"]),
+        axis=1
+    )
+]
+
+# print(reziser_nije_scenarista_precizno["title"])
+
+
+# ============================================================
+# ZADATAK 9
+# Scatter plot: zavisnost godine od žanra.
+# Ako film ima više žanrova, tačka za svaki žanr.
+# ============================================================
+
+filmovi_za_scatter = df.copy()
+filmovi_za_scatter["genres"] = filmovi_za_scatter["genres"].str.split(",")
+filmovi_za_scatter = filmovi_za_scatter.explode("genres")
+filmovi_za_scatter["genres"] = filmovi_za_scatter["genres"].str.strip()
+
+fig_scatter = px.scatter(
+    filmovi_za_scatter,
+    x="genres",
+    y="year_norm",
+    hover_name="title",
+    title="Zavisnost godine od žanra"
+)
+
+# fig_scatter.show()
+
+
+# ============================================================
+# KAKO IZABRATI GRAFIKON?
+# ============================================================
+
+"""
+1. BAR CHART — px.bar()
+   KADA: porediš kategorije i njihove količine.
+   PRIMER: broj filmova po žanru, broj filmova po režiseru.
+
+   ŠABLON:
+       fig = px.bar(x=brojanje.index, y=brojanje.values)
+       fig.show()
+
+2. HISTOGRAM — px.histogram()
+   KADA: prikazuješ raspodelu jedne numeričke kolone.
+   PRIMER: godine filmova, BPM, ocene, trajanje.
+
+   ŠABLON:
+       fig = px.histogram(df, x="BROJČANA_KOLONA")
+       fig.show()
+
+3. SCATTER PLOT — px.scatter()
+   KADA: prikazuješ vezu između dve promenljive.
+   PRIMER: godina i žanr, danceability i energy.
+
+   ŠABLON:
+       fig = px.scatter(df, x="KOLONA_X", y="KOLONA_Y")
+       fig.show()
+
+4. PIE CHART — px.pie()
+   KADA: prikazuješ udele/procente delova u celini.
+
+   ŠABLON:
+       brojanje = df["KATEGORIJA"].value_counts()
+       fig = px.pie(values=brojanje.values, names=brojanje.index)
+       fig.show()
+
+5. LINE CHART — px.line()
+   KADA: pratiš promenu kroz vreme ili uređeni niz.
+
+   ŠABLON:
+       grupisano = df.groupby("GODINA")["VREDNOST"].sum().reset_index()
+       fig = px.line(grupisano, x="GODINA", y="VREDNOST")
+       fig.show()
+
+6. BOX PLOT — px.box()
+   KADA: porediš raspodelu numeričke vrednosti između kategorija.
+
+   ŠABLON:
+       fig = px.box(df, x="KATEGORIJA", y="BROJČANA_KOLONA")
+       fig.show()
+
+7. HEATMAP — px.imshow()
+   KADA: prikazuješ korelacije numeričkih kolona.
+
+   ŠABLON:
+       korelacija = df.select_dtypes(include="number").corr()
+       fig = px.imshow(korelacija, text_auto=True)
+       fig.show()
+
+8. 3D SCATTER — px.scatter_3d()
+   KADA: prikazuješ odnos tri numeričke promenljive.
+
+   ŠABLON:
+       fig = px.scatter_3d(df, x="KOLONA_X", y="KOLONA_Y", z="KOLONA_Z")
+       fig.show()
+"""
+
+
+# ============================================================
+# BRZI REČNIK: TEKST ZADATKA -> KOMANDA
+# ============================================================
+
+"""
+učitati CSV                         -> pd.read_csv()
+prvih 5/10 redova                   -> head() / head(10)
+nazivi kolona                       -> columns
+prazne ćelije                       -> isnull().sum()
+tipovi podataka                     -> dtypes
+pronaći tekst/ime                   -> str.contains()
+sortirati                           -> sort_values()
+prebrojati                          -> value_counts()
+grupisati                           -> groupby()
+prosek                              -> mean()
+zbir                                -> sum()
+najmanja vrednost                   -> min()
+najveća vrednost                    -> max()
+prvih 10                            -> head(10)
+poslednjih 10                       -> tail(10)
+više vrednosti u jednoj ćeliji      -> str.split() + explode()
+samo nazivi                         -> ["title"]
+ceo pronađeni red                   -> df[uslov]
+obrnuto sortiranje                  -> ascending=False
+"""
+
+print("\nPodsetnik je učitan. Grafikoni su zakomentarisani.")
+print("Ukloni # ispred fig.show() kada želiš prikaz grafikona.")
