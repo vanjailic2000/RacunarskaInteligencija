@@ -1,0 +1,207 @@
+import pandas as pd
+import plotly.express as px
+
+
+# ============================================================
+# KOLOKVIJUM 1A
+# ============================================================
+
+# ============================================================
+# UČITAVANJE PODATAKA
+# ============================================================
+
+# Učitava CSV fajl Filmovi.csv u DataFrame df.
+df = pd.read_csv("Filmovi.csv")
+
+
+# ------------------------------------------------------------
+# ZADATAK 1
+# Učitati set podataka i prikazati prvih 10 redova.
+# ------------------------------------------------------------
+
+# head(10) prikazuje prvih 10 redova tabele.
+print(df.head(10))
+
+
+# ------------------------------------------------------------
+# ZADATAK 2
+# Proveriti da li ima praznih ćelija i koliko ima ukupno redova.
+# ------------------------------------------------------------
+
+# isnull() proverava prazne ćelije, a sum() ih prebrojava po kolonama.
+print(df.isnull().sum())
+
+# len(df) prikazuje ukupan broj redova.
+print("Ukupan broj redova:", len(df))
+
+
+# ------------------------------------------------------------
+# ZADATAK 3
+# Ispisati nazive filmova u kojima se pojavljuje Anne Hathaway.
+# ------------------------------------------------------------
+
+# U koloni cast traži tekst Anne Hathaway i prikazuje samo nazive filmova.
+print(df[df["cast"].str.contains("Anne Hathaway", na=False)]["title"])
+
+
+# ------------------------------------------------------------
+# ZADATAK 4
+# Sortirati filmove po primarnom žanru
+# (prvi navedeni žanr).
+# ------------------------------------------------------------
+
+# Pravimo kopiju da ne menjamo originalni DataFrame.
+filmovi_po_zanru = df.copy()
+
+# split(",") deli žanrove po zarezu.
+# str[0] uzima prvi navedeni žanr.
+# strip() uklanja višak razmaka.
+filmovi_po_zanru["primary_genre"] = (
+    filmovi_po_zanru["genres"]
+    .str.split(",")
+    .str[0]
+    .str.strip()
+)
+
+# sort_values() sortira filmove po primarnom žanru.
+filmovi_po_zanru = filmovi_po_zanru.sort_values("primary_genre")
+
+# Prikazuje naziv filma i primarni žanr.
+print(filmovi_po_zanru[["title", "primary_genre"]])
+
+
+# ------------------------------------------------------------
+# ZADATAK 5
+# Izračunati koliko svaki režiser ima filmova
+# i prikazati bar chart za prvih deset režisera.
+# ------------------------------------------------------------
+
+# value_counts() broji koliko puta se pojavljuje svaki režiser.
+broj_filmova_po_reziseru = df["director"].value_counts()
+
+# Ispisuje broj filmova za svakog režisera.
+print(broj_filmova_po_reziseru)
+
+# head(10) uzima prvih 10 režisera sa najviše filmova.
+top10_rezisera = broj_filmova_po_reziseru.head(10)
+
+# px.bar() pravi bar chart.
+fig = px.bar(
+    x=top10_rezisera.index,
+    y=top10_rezisera.values,
+    labels={
+        "x": "Režiser",
+        "y": "Broj filmova"
+    },
+    title="Top 10 režisera po broju filmova"
+)
+
+# Prikazuje grafikon.
+fig.show()
+
+
+# ------------------------------------------------------------
+# ZADATAK 6
+# Pronaći najstariji i najnoviji film.
+# ------------------------------------------------------------
+
+# min() pronalazi najmanju vrednost u koloni year_norm.
+najstariji_film = df[
+    df["year_norm"] == df["year_norm"].min()
+]
+
+# max() pronalazi najveću vrednost u koloni year_norm.
+najnoviji_film = df[
+    df["year_norm"] == df["year_norm"].max()
+]
+
+# Prikazuje najstariji film.
+print(najstariji_film)
+
+# Prikazuje najnoviji film.
+print(najnoviji_film)
+
+
+# ------------------------------------------------------------
+# ZADATAK 7
+# Prikazati histogram filmova po godinama.
+# ------------------------------------------------------------
+
+# px.histogram() pravi histogram kolone year_norm.
+fig = px.histogram(
+    df,
+    x="year_norm",
+    title="Histogram filmova po godinama",
+    labels={
+        "year_norm": "Godina"
+    }
+)
+
+# Prikazuje histogram.
+fig.show()
+
+
+# ------------------------------------------------------------
+# ZADATAK 8
+# Pronaći filmove u kojima režiseri nisu ujedno i scenaristi.
+# ------------------------------------------------------------
+
+# Preciznija verzija:
+# apply() prolazi kroz svaki red.
+# Proverava da li se ime režisera nalazi među scenaristima.
+# Znak ~ obrće rezultat, pa ostaju filmovi gde režiser nije scenarista.
+reziser_nije_scenarista = df[
+    ~df.apply(
+        lambda red: str(red["director"]).strip()
+        in str(red["writers"]),
+        axis=1
+    )
+]
+
+# Prikazuje pronađene filmove.
+print(reziser_nije_scenarista)
+
+
+# Jednostavnija verzija:
+# print(df[df["director"] != df["writers"]])
+
+
+# ------------------------------------------------------------
+# ZADATAK 9
+# Kreirati scatter plot koji prikazuje zavisnost
+# godine od žanra filma.
+# Ukoliko film ima više žanrova,
+# prikazati tačku za svaki žanr.
+# ------------------------------------------------------------
+
+# Pravimo kopiju DataFrame-a.
+filmovi_scatter = df.copy()
+
+# split(",") deli više žanrova u listu.
+filmovi_scatter["genres"] = (
+    filmovi_scatter["genres"].str.split(",")
+)
+
+# explode() pravi poseban red za svaki žanr.
+filmovi_scatter = filmovi_scatter.explode("genres")
+
+# strip() uklanja višak razmaka.
+filmovi_scatter["genres"] = (
+    filmovi_scatter["genres"].str.strip()
+)
+
+# px.scatter() pravi scatter plot.
+fig = px.scatter(
+    filmovi_scatter,
+    x="genres",
+    y="year_norm",
+    hover_name="title",
+    title="Zavisnost godine od žanra filma",
+    labels={
+        "genres": "Žanr",
+        "year_norm": "Godina"
+    }
+)
+
+# Prikazuje scatter plot.
+fig.show()
