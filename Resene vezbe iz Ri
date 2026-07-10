@@ -1,0 +1,128 @@
+import pandas as pd
+import plotly.express as px
+
+# ==========================
+# UCITAVANJE PODATAKA
+# ==========================
+
+df = pd.read_csv("Filmovi.csv")
+
+# ==========================
+# ZADATAK 1
+# Ucitati set podataka i ispisati nazive kolona
+# ==========================
+
+print(df.columns)
+
+
+# ==========================
+# ZADATAK 2
+# Proveriti da li ima praznih ćelija i koji su tipovi podataka u kolonama
+# ==========================
+
+# Provera praznih ćelija
+print(df.isnull().sum())
+
+# Tipovi podataka
+print(df.dtypes)
+
+# ==========================
+# ZADATAK 3
+# Ispisati nazive filmova u kojima se pojavljuje James McAvoy
+# ==========================
+
+print(df[df["cast"].str.contains("James McAvoy")]["title"])
+
+# ==========================
+# ZADATAK 4
+# Sortirati filmove po nazivu
+# ==========================
+
+sortirano = df.sort_values("title")
+
+print(sortirano)
+
+
+# ==========================
+# ZADATAK 5
+# Izračunati koliko svaki žanr ima filmova
+# ==========================
+
+# ==========================
+# ZADATAK 5
+# Izračunati koliko svaki žanr ima filmova
+# i prikazati bar chart za prvih 10 žanrova
+# ==========================
+
+zanrovi = df.copy()
+
+zanrovi["genres"] = zanrovi["genres"].str.split(",")
+
+zanrovi = zanrovi.explode("genres")
+
+print(zanrovi["genres"].value_counts())
+
+top10 = zanrovi["genres"].value_counts().head(10)
+
+fig = px.bar(
+    x=top10.index,
+    y=top10.values,
+    title="Top 10 zanrova"
+)
+
+fig.show()
+
+
+# ==========================
+# ZADATAK 6
+# Pronaći najstariji i najnoviji film
+# ==========================
+
+# Najstariji film
+print(df[df["year_norm"] == df["year_norm"].min()])
+
+# Najnoviji film
+print(df[df["year_norm"] == df["year_norm"].max()])
+
+
+# ==========================
+# ZADATAK 7
+# Prikazati histogram filmova po godinama
+# ==========================
+
+fig = px.histogram(df, x="year_norm")
+
+fig.show()
+
+
+# ==========================
+# ZADATAK 8
+# Pronaći filmove u kojima režiser nije scenarista
+# ==========================
+
+print(df[df["director"] != df["writers"]]["title"])
+#verzija moze i bez title:
+
+#print(df[df["director"] != df["writers"]])---prikazuje podatke o filmovima jer stampa ceo red
+#a prva pokazuje samo nazive filmova
+
+
+
+# ==========================
+# ZADATAK 9
+# Scatter plot godina - žanr
+# ==========================
+
+df2 = df.copy()
+
+df2["genres"] = df2["genres"].str.split(",")
+
+df2 = df2.explode("genres")
+
+fig = px.scatter(
+    df2,
+    x="genres",
+    y="year_norm"
+)
+
+fig.show()
